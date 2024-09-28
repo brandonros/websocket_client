@@ -11,6 +11,7 @@ use futures_lite as futures_provider;
 
 use futures_provider::io::{AsyncRead, AsyncWrite, AsyncReadExt, AsyncWriteExt, BufReader, BufWriter};
 use bytes::{Buf, BytesMut};
+use base64::Engine;
 use rand::RngCore;
 use nom::{
     bytes::streaming::take,
@@ -25,6 +26,7 @@ pub trait AsyncConn: AsyncRead + AsyncWrite + Send + Sync + Unpin {}
 impl<T: AsyncRead + AsyncWrite + Send + Sync + Unpin> AsyncConn for T {}
 
 /// Represents a WebSocket frame.
+#[derive(Debug)]
 pub struct WebSocketFrame {
     pub fin: bool,
     pub opcode: u8,
@@ -176,7 +178,7 @@ where
     /// Parses a WebSocket frame from the buffer using nom.
     fn parse_frame(&mut self) -> Result<Option<WebSocketFrame>> {
         if self.buffer.is_empty() {
-            log::debug!("Buffer is empty, waiting for more data");
+            log::trace!("Buffer is empty, waiting for more data");
             return Ok(None); // Or handle it accordingly, maybe an error or wait for more data
         }
 
@@ -240,7 +242,7 @@ where
     pub async fn write_frame(&mut self, message: &str) -> Result<()> {
         let frame = WebSocketFrame::from_message(message);
         let frame_bytes = frame.to_bytes();
-        log::debug!("frame_bytes = {frame_bytes:02x?}");
+        log::debug!("write_frame: frame_bytes = {frame_bytes:02x?}");
     
         // Write the frame to the writer
         self.writer.write_all(&frame_bytes).await?;
@@ -260,6 +262,6 @@ impl WebSocketClientHelpers {
         rand::thread_rng().fill_bytes(&mut key);
         
         // Encode the random bytes using base64
-        base64::encode(&key)
+        base64::prelude::BASE64_STANDARD.encode(&key)
     }    
 }
