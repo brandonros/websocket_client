@@ -678,20 +678,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c06d3da6113f116aaee68e4d601191614c9053067f9ab7f6edbcb161237daa54"
 
 [[package]]
-name = "tradingview_client"
-version = "0.1.0"
-source = "git+https://github.com/brandonros/tradingview_client.git?rev=4131df218e366da2f0a98512bf244640e9df60fc#4131df218e366da2f0a98512bf244640e9df60fc"
-dependencies = [
- "async-io",
- "bytes",
- "futures-lite",
- "log",
- "nom",
- "rand",
- "websocket_client 0.1.0 (git+https://github.com/brandonros/websocket_client.git?rev=ab32cefd79552690605f16d7fe36906014229a81)",
-]
-
-[[package]]
 name = "unicode-ident"
 version = "1.0.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -747,23 +733,6 @@ dependencies = [
  "futures-lite",
  "http",
  "http_client",
- "log",
- "nom",
- "rand",
- "tradingview_client",
-]
-
-[[package]]
-name = "websocket_client"
-version = "0.1.0"
-source = "git+https://github.com/brandonros/websocket_client.git?rev=ab32cefd79552690605f16d7fe36906014229a81#ab32cefd79552690605f16d7fe36906014229a81"
-dependencies = [
- "async-io",
- "async-tls",
- "base64 0.22.1",
- "bytes",
- "futures-lite",
- "http",
  "log",
  "nom",
  "rand",
