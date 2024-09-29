@@ -155,56 +155,51 @@ impl WebSocketFrame {
     }
 }
 
-pub struct WebSocketClient<R, W> {
+/// WebSocketReader reads WebSocket frames from the underlying stream.
+pub struct WebSocketReader<R>
+where
+    R: AsyncRead + Unpin,
+{
     reader: BufReader<R>,
-    writer: BufWriter<W>,
     buffer: BytesMut,
 }
 
-impl<R, W> WebSocketClient<R, W>
+impl<R> WebSocketReader<R>
 where
     R: AsyncRead + Unpin,
-    W: AsyncWrite + Unpin,
 {
-    /// Creates a new WebSocketClient with the given reader and writer.
-    pub fn new(reader: BufReader<R>, writer: BufWriter<W>) -> Self {
+    pub fn new(reader: R) -> Self {
         Self {
-            reader,
-            writer,
-            buffer: BytesMut::with_capacity(1024 * 1024 * 1),
+            reader: BufReader::new(reader),
+            buffer: BytesMut::with_capacity(1024 * 1024),
         }
     }
 
     /// Parses a WebSocket frame from the buffer using nom.
     fn parse_frame(&mut self) -> Result<Option<WebSocketFrame>> {
         if self.buffer.is_empty() {
-            log::trace!("Buffer is empty, waiting for more data");
-            return Ok(None); // Or handle it accordingly, maybe an error or wait for more data
+            return Ok(None); // Need more data
         }
 
         let input = &self.buffer[..];
-        log::debug!("Attempting to parse frame from buffer of length {}", input.len());
-    
+
         match WebSocketFrame::parse(input) {
             Ok((remaining, frame)) => {
                 let parsed_len = input.len() - remaining.len();
-                log::debug!("Successfully parsed frame of length {}", parsed_len);
                 self.buffer.advance(parsed_len);
-    
                 Ok(Some(frame))
             }
-            Err(nom::Err::Incomplete(needed)) => {
-                log::debug!("Incomplete frame, need more data: {:?}", needed);
+            Err(nom::Err::Incomplete(_)) => {
                 // Not enough data, need to read more
                 Ok(None)
             }
             Err(e) => {
                 // Parsing error
-                log::error!("Parsing error: {:?}", e);
                 Err(std::io::Error::new(
                     std::io::ErrorKind::InvalidData,
                     format!("Parsing error: {:?}", e),
-                ).into())
+                )
+                .into())
             }
         }
     }
@@ -214,43 +209,56 @@ where
         loop {
             // Try to parse a frame from the buffer
             if let Some(frame) = self.parse_frame()? {
-                log::debug!("Parsed frame: opcode={}, fin={}, payload_len={} payload={:02x?}", frame.opcode, frame.fin, frame.payload.len(), frame.payload);
                 return Ok(Some(frame));
             }
-    
+
             // Read more data into the buffer
-            let mut temp_buffer = [0u8; 65536];
+            let mut temp_buffer = [0u8; 4096];
             let n = self.reader.read(&mut temp_buffer).await?;
             if n == 0 {
                 if self.buffer.is_empty() {
-                    log::debug!("Stream closed and buffer is empty");
                     return Ok(None); // Stream closed and buffer empty
                 } else {
-                    log::debug!("Stream closed with incomplete frame");
                     return Err(std::io::Error::new(
                         std::io::ErrorKind::UnexpectedEof,
                         "Stream closed with incomplete frame",
-                    ).into());
+                    )
+                    .into());
                 }
             }
-            log::debug!("Read {} bytes from stream", n);
             self.buffer.extend_from_slice(&temp_buffer[..n]);
-            log::debug!("Buffer length after reading: {}", self.buffer.len());
+        }
+    }
+}
+
+/// WebSocketWriter writes WebSocket frames to the underlying stream.
+pub struct WebSocketWriter<W>
+where
+    W: AsyncWrite + Unpin,
+{
+    writer: BufWriter<W>,
+}
+
+impl<W> WebSocketWriter<W>
+where
+    W: AsyncWrite + Unpin,
+{
+    pub fn new(writer: W) -> Self {
+        Self {
+            writer: BufWriter::new(writer),
         }
     }
 
     pub async fn write_frame(&mut self, message: &str) -> Result<()> {
         let frame = WebSocketFrame::from_message(message);
         let frame_bytes = frame.to_bytes();
-        log::debug!("write_frame: frame_bytes = {frame_bytes:02x?}");
-    
+
         // Write the frame to the writer
         self.writer.write_all(&frame_bytes).await?;
         self.writer.flush().await?;
         Ok(())
     }
 }
-
 pub struct WebSocketClientHelpers;
 
 impl WebSocketClientHelpers {

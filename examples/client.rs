@@ -12,7 +12,7 @@ use futures_lite as futures_provider;
 use futures_provider::io::{BufReader, BufWriter};
 use http::{Request, Uri, Version};
 use http_client::HttpClient;
-use websocket_client::{WebSocketClient, WebSocketClientHelpers};
+use websocket_client::{WebSocketClientHelpers, WebSocketReader, WebSocketWriter};
 
 fn main() {
     futures_provider::future::block_on(async {
@@ -49,7 +49,8 @@ fn main() {
         let writer = BufWriter::new(writer);
 
         // create websocket client
-        let ws_client = WebSocketClient::new(reader, writer);
+        let ws_reader = WebSocketReader::new(reader);
+        let ws_writer = WebSocketWriter::new(writer);
 
         // TODO: read/write
     })
