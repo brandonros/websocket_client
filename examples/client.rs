@@ -12,7 +12,7 @@ use futures_lite as futures_provider;
 use futures_provider::io::{BufReader, BufWriter};
 use http::{Request, Uri, Version};
 use http_client::HttpClient;
-use websocket_client::{WebSocketClientHelpers, WebSocketReader, WebSocketWriter};
+use websocket_client::{WebSocketHelpers, WebSocketReader, WebSocketWriter};
 
 fn main() {
     futures_provider::future::block_on(async {
@@ -33,7 +33,7 @@ fn main() {
             .header("Connection", "Upgrade")
             .header("Upgrade", "websocket")      
             .header("Sec-WebSocket-Version", "13")                        
-            .header("Sec-WebSocket-Key", WebSocketClientHelpers::generate_sec_websocket_key())    
+            .header("Sec-WebSocket-Key", WebSocketHelpers::generate_sec_websocket_key())    
             //.header("Sec-WebSocket-Extensions", "permessage-deflate; client_max_window_bits")
             .body(())
             .expect("Failed to build request");
