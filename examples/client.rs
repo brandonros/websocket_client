@@ -49,9 +49,32 @@ fn main() {
         let writer = BufWriter::new(writer);
 
         // create websocket client
-        let ws_reader = WebSocketReader::new(reader);
-        let ws_writer = WebSocketWriter::new(writer);
+        let mut ws_reader = WebSocketReader::new(reader);
+        let mut ws_writer = WebSocketWriter::new(writer);
 
-        // TODO: read/write
+        // start task for reading in a loop using the reader
+        let handle = std::thread::spawn(move || {
+            futures_provider::future::block_on(async {
+                loop {
+                    match ws_reader.read_frame().await {
+                        Ok(result) => {
+                            match result {
+                                Some(frame) => {
+                                    log::info!("frame_payload = {:02x?}", frame.payload);
+                                },
+                                None => log::warn!("failed to read frame?"),
+                            }
+                        },
+                        Err(_) => todo!(),
+                    }
+                }
+            })
+        });
+
+        // send a frame
+        ws_writer.write_frame(r#"~m~54~m~{"m":"set_auth_token","p":["unauthorized_user_token"]}"#).await.expect("failed to write frame");
+
+        // block on reader task
+        handle.join().expect("failed to join task");
     })
 }
