@@ -1,16 +1,18 @@
 use nom::{
     bytes::streaming::take as take_streaming,
-    number::streaming::{be_u8 as be_u8_streaming, be_u16 as be_u16_streaming},
+    number::streaming::{be_u8 as be_u8_streaming, be_u16 as be_u16_streaming, be_u64 as be_u64_streaming},
 
     IResult,
 };
 use rand::RngCore;
 
+use crate::opcode::WebSocketOpcode;
+
 /// Represents a WebSocket frame.
 #[derive(Debug)]
 pub struct WebSocketFrame {
     pub fin: bool,
-    pub opcode: u8,
+    pub opcode: WebSocketOpcode,
     pub payload: Vec<u8>,
 }
 
@@ -20,6 +22,9 @@ impl WebSocketFrame {
         let (input, b0) = be_u8_streaming(input)?;
         let fin = b0 & 0x80 != 0;
         let opcode = b0 & 0x0F;
+        let opcode = WebSocketOpcode::from_u8(opcode).ok_or_else(|| {
+            nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Alt))
+        })?;
     
         let (input, b1) = be_u8_streaming(input)?;
         let masked = b1 & 0x80 != 0;
@@ -32,15 +37,15 @@ impl WebSocketFrame {
                 (input, len as usize)
             }
             127 => {
-                let (input, len) = be_u16_streaming(input)?;
+                let (input, len) = be_u64_streaming(input)?;
                 (input, len as usize)
             }
-            _ => (input, payload_len),
+            _ => (input, payload_len), // Handles payload_len <= 125
         };
     
         // Log the frame header information
         log::debug!(
-            "Frame header: fin={}, opcode={}, masked={}, payload_len={}",
+            "Frame header: fin={}, opcode={:02x?}, masked={}, payload_len={}",
             fin,
             opcode,
             masked,
@@ -81,10 +86,10 @@ impl WebSocketFrame {
     }
 
     /// Creates a WebSocket frame from a message string (text frame).
-    pub fn from_message(message: &str) -> WebSocketFrame {
+    pub fn build_text_frame(message: &str) -> WebSocketFrame {
         WebSocketFrame {
             fin: true,
-            opcode: 0x1, // Text frame
+            opcode: WebSocketOpcode::Text,
             payload: message.as_bytes().to_vec(),
         }
     }
@@ -98,7 +103,7 @@ impl WebSocketFrame {
         if self.fin {
             fin_rsv_opcode |= 0x80;
         }
-        fin_rsv_opcode |= self.opcode & 0x0F;
+        fin_rsv_opcode |= (self.opcode as u8) & 0x0F;
         frame.push(fin_rsv_opcode);
 
         // Payload length and MASK bit

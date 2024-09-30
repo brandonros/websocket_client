@@ -3,6 +3,7 @@ use bytes::{Buf, BytesMut};
 use crate::futures_provider::io::{BufReader, AsyncRead, AsyncReadExt};
 use crate::types::Result;
 use crate::frame::WebSocketFrame;
+use crate::message::WebSocketMessage;
 
 /// WebSocketReader reads WebSocket frames from the underlying stream.
 pub struct WebSocketReader<R>
@@ -76,6 +77,39 @@ where
                 }
             }
             self.buffer.extend_from_slice(&temp_buffer[..n]);
+        }
+    }
+
+    /// Reads a complete WebSocket message, handling fragmented frames.
+    pub async fn read_message(&mut self) -> Result<Option<WebSocketMessage>> {
+        let mut message = WebSocketMessage::new();
+
+        // Keep reading frames until the entire message is accumulated
+        loop {
+            // Read the next frame
+            match self.read_frame().await? {
+                Some(frame) => {
+                    // Append the frame to the message
+                    message.append_frame(frame)?;
+
+                    // If the message is complete, return it
+                    if message.is_complete {
+                        return Ok(Some(message));
+                    }
+                }
+                None => {
+                    // If no frame is returned, it means the stream has ended
+                    if message.payload_buffer.is_empty() {
+                        return Ok(None); // No message to return
+                    } else {
+                        return Err(std::io::Error::new(
+                            std::io::ErrorKind::UnexpectedEof,
+                            "Stream closed before message was fully received",
+                        )
+                        .into());
+                    }
+                }
+            }
         }
     }
 }
