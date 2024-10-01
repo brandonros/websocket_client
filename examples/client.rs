@@ -72,7 +72,7 @@ fn main() {
         });
 
         // send a frame
-        ws_writer.write_frame(r#"~m~54~m~{"m":"set_auth_token","p":["unauthorized_user_token"]}"#).await.expect("failed to write frame");
+        ws_writer.write_text_message(r#"~m~54~m~{"m":"set_auth_token","p":["unauthorized_user_token"]}"#).await.expect("failed to write frame");
 
         // block on reader task
         handle.join().expect("failed to join task");

@@ -20,7 +20,7 @@ where
         }
     }
 
-    pub async fn write_frame(&mut self, message: &str) -> Result<()> {
+    pub async fn write_text_message(&mut self, message: &str) -> Result<()> {
         let frame = WebSocketFrame::build_text_frame(message);
         let frame_bytes = frame.to_bytes();
 
