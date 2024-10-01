@@ -24,4 +24,4 @@ nom = "7.1.3"
 env_logger = "0.11.5"
 # http
 http = "1.0.0"
-http_client = { git = "https://github.com/brandonros/http_client.git", rev = "60bde76d4d80379762758d32ff7bfecaf6c58a12" }
+http_client = { git = "https://github.com/brandonros/http_client.git", rev = "52cf9005c87ff069a098af9365dcd7a60e276792" }
