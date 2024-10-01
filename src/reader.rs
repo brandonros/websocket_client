@@ -1,6 +1,6 @@
 use bytes::{Buf, BytesMut};
+use futures_lite::io::{BufReader, AsyncRead, AsyncReadExt};
 
-use crate::futures_provider::io::{BufReader, AsyncRead, AsyncReadExt};
 use crate::types::Result;
 use crate::frame::WebSocketFrame;
 use crate::message::WebSocketMessage;

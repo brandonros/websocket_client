@@ -1,21 +1,10 @@
-#[cfg(not(any(feature = "futures", feature = "futures-lite")))]
-compile_error!(
-    "You must enable either the `futures` or `futures-lite` feature to build this crate."
-);
-
-#[cfg(feature = "futures")]
-use futures as futures_provider;
-
-#[cfg(feature = "futures-lite")]
-use futures_lite as futures_provider;
-
-use futures_provider::io::{BufReader, BufWriter};
+use futures_lite::io::{BufReader, BufWriter};
 use http::{Request, Uri, Version};
 use http_client::HttpClient;
 use websocket_client::{WebSocketHelpers, WebSocketReader, WebSocketWriter};
 
 fn main() {
-    futures_provider::future::block_on(async {
+    futures_lite::future::block_on(async {
         // init logging
         env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("debug")).init();
         
@@ -44,7 +33,7 @@ fn main() {
         log::info!("response = {response:?}");
 
         // split
-        let (reader, writer) = futures_provider::io::split(stream);
+        let (reader, writer) = futures_lite::io::split(stream);
         let reader = BufReader::new(reader);
         let writer = BufWriter::new(writer);
 
@@ -54,7 +43,7 @@ fn main() {
 
         // start task for reading in a loop using the reader
         let handle = std::thread::spawn(move || {
-            futures_provider::future::block_on(async {
+            futures_lite::future::block_on(async {
                 loop {
                     match ws_reader.read_frame().await {
                         Ok(result) => {

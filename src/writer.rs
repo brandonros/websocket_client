@@ -1,4 +1,5 @@
-use crate::futures_provider::io::{BufWriter, AsyncWrite, AsyncWriteExt};
+use futures_lite::io::{BufWriter, AsyncWrite, AsyncWriteExt};
+
 use crate::types::Result;
 use crate::frame::WebSocketFrame;
 

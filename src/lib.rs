@@ -1,4 +1,3 @@
-mod futures_provider;
 mod frame;
 mod reader;
 mod writer;
