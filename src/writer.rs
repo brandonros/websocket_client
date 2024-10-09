@@ -30,4 +30,17 @@ where
         self.writer.flush().await?;
         Ok(())
     }
+
+    pub async fn write_close_message(&mut self) -> Result<()> {
+        let frame = WebSocketFrame::build_close_frame();
+        let frame_bytes = frame.to_bytes();
+
+        // Write the frame to the writer
+        self.writer.write_all(&frame_bytes).await?;
+        self.writer.flush().await?;
+
+        // close the writer
+        self.writer.close().await?;
+        Ok(())
+    }
 }

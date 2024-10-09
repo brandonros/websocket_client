@@ -94,6 +94,17 @@ impl WebSocketFrame {
         }
     }
 
+    /// Creates a WebSocket close frame.
+    pub fn build_close_frame() -> WebSocketFrame {
+        let mut payload = Vec::new();
+        payload.extend_from_slice(&1000u16.to_be_bytes()); // Default close code (1000 - Normal Closure)
+        WebSocketFrame {
+            fin: true,
+            opcode: WebSocketOpcode::Close,
+            payload,
+        }
+    }
+
     /// Serializes the WebSocket frame into bytes for sending over the network.
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut frame = Vec::new();
