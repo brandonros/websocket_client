@@ -1,7 +1,6 @@
 use bytes::{Buf, BytesMut};
 use futures_lite::io::{BufReader, AsyncRead, AsyncReadExt};
 
-use crate::types::Result;
 use crate::frame::WebSocketFrame;
 use crate::message::WebSocketMessage;
 
@@ -26,7 +25,7 @@ where
     }
 
     /// Parses a WebSocket frame from the buffer using nom.
-    fn parse_frame(&mut self) -> Result<Option<WebSocketFrame>> {
+    fn parse_frame(&mut self) -> anyhow::Result<Option<WebSocketFrame>> {
         if self.buffer.is_empty() {
             return Ok(None); // Need more data
         }
@@ -55,7 +54,7 @@ where
     }
 
     /// Reads the next WebSocket frame, handling partial frames and buffering.
-    pub async fn read_frame(&mut self) -> Result<Option<WebSocketFrame>> {
+    pub async fn read_frame(&mut self) -> anyhow::Result<Option<WebSocketFrame>> {
         loop {
             // Try to parse a frame from the buffer
             if let Some(frame) = self.parse_frame()? {
@@ -81,7 +80,7 @@ where
     }
 
     /// Reads a complete WebSocket message, handling fragmented frames.
-    pub async fn read_message(&mut self) -> Result<Option<WebSocketMessage>> {
+    pub async fn read_message(&mut self) -> anyhow::Result<Option<WebSocketMessage>> {
         let mut message = WebSocketMessage::new();
 
         // Keep reading frames until the entire message is accumulated
@@ -99,7 +98,7 @@ where
                 }
                 None => {
                     // If no frame is returned, it means the stream has ended
-                    if message.payload_buffer.is_empty() {
+                    if message.payload.is_empty() {
                         return Ok(None); // No message to return
                     } else {
                         return Err(std::io::Error::new(

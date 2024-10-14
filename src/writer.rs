@@ -1,6 +1,5 @@
 use futures_lite::io::{BufWriter, AsyncWrite, AsyncWriteExt};
 
-use crate::types::Result;
 use crate::frame::WebSocketFrame;
 
 /// WebSocketWriter writes WebSocket frames to the underlying stream.
@@ -21,7 +20,7 @@ where
         }
     }
 
-    pub async fn write_text_message(&mut self, message: &str) -> Result<()> {
+    pub async fn write_text_message(&mut self, message: &str) -> anyhow::Result<()> {
         let frame = WebSocketFrame::build_text_frame(message);
         let frame_bytes = frame.to_bytes();
 
@@ -31,7 +30,7 @@ where
         Ok(())
     }
 
-    pub async fn write_close_message(&mut self) -> Result<()> {
+    pub async fn write_close_message(&mut self) -> anyhow::Result<()> {
         let frame = WebSocketFrame::build_close_frame();
         let frame_bytes = frame.to_bytes();
 

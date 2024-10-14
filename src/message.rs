@@ -1,11 +1,10 @@
 use crate::frame::WebSocketFrame;
 use crate::opcode::WebSocketOpcode;
-use crate::types::Result;
 
 #[derive(Debug)]
 pub struct WebSocketMessage {
     pub opcode: Option<WebSocketOpcode>,  // Opcode of the first frame in the message
-    pub payload_buffer: Vec<u8>,               // Accumulated payload data
+    pub payload: Vec<u8>,               // Accumulated payload data
     pub is_complete: bool,                // True when the message is fully received
 }
 
@@ -13,20 +12,20 @@ impl WebSocketMessage {
     pub fn new() -> Self {
         WebSocketMessage {
             opcode: None,
-            payload_buffer: Vec::new(),
+            payload: Vec::new(),
             is_complete: false,
         }
     }
 
     pub fn reset(&mut self) {
         self.opcode = None;
-        self.payload_buffer.clear();
+        self.payload.clear();
         self.is_complete = false;
     }
 
-    pub fn append_frame(&mut self, frame: WebSocketFrame) -> Result<()> {
+    pub fn append_frame(&mut self, frame: WebSocketFrame) -> anyhow::Result<()> {
         if frame.opcode == WebSocketOpcode::Continuation && self.opcode.is_none() {
-            return Err("Invalid continuation frame without a starting frame".into());
+            return Err(anyhow::anyhow!("Invalid continuation frame without a starting frame"));
         }
 
         // Handle the first frame of a fragmented message
@@ -35,7 +34,7 @@ impl WebSocketMessage {
         }
 
         // Accumulate the payload
-        self.payload_buffer.extend_from_slice(&frame.payload);
+        self.payload.extend_from_slice(&frame.payload);
 
         // If the `fin` flag is set, mark the message as complete
         if frame.fin {
@@ -47,7 +46,7 @@ impl WebSocketMessage {
 
     pub fn get_message(&self) -> Option<&[u8]> {
         if self.is_complete {
-            Some(&self.payload_buffer)
+            Some(&self.payload)
         } else {
             None
         }

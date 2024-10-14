@@ -1,7 +1,6 @@
 mod frame;
 mod reader;
 mod writer;
-mod types;
 mod helpers;
 mod message;
 mod opcode;
