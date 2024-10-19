@@ -1,3 +1,5 @@
+use simple_error::SimpleResult;
+
 use crate::frame::WebSocketFrame;
 use crate::opcode::WebSocketOpcode;
 
@@ -23,9 +25,9 @@ impl WebSocketMessage {
         self.is_complete = false;
     }
 
-    pub fn append_frame(&mut self, frame: WebSocketFrame) -> anyhow::Result<()> {
+    pub fn append_frame(&mut self, frame: WebSocketFrame) -> SimpleResult<()> {
         if frame.opcode == WebSocketOpcode::Continuation && self.opcode.is_none() {
-            return Err(anyhow::anyhow!("Invalid continuation frame without a starting frame"));
+            return Err("Invalid continuation frame without a starting frame".into());
         }
 
         // Handle the first frame of a fragmented message

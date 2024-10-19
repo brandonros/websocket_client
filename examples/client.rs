@@ -4,10 +4,11 @@ use async_executor::Executor;
 use futures_lite::io::{BufReader, BufWriter};
 use http::{Request, Uri, Version};
 use http_client::HttpClient;
+use simple_error::SimpleResult;
 use websocket_client::{WebSocketHelpers, WebSocketReader, WebSocketWriter};
 
 #[macro_rules_attribute::apply(smol_macros::main!)]
-async fn main(executor: Arc<Executor<'static>>) -> anyhow::Result<()> {
+async fn main(executor: Arc<Executor<'static>>) -> SimpleResult<()> {
     // init logging
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("debug")).init();
         

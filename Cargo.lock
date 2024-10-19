@@ -61,12 +61,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "anyhow"
-version = "1.0.89"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86fdf8605db99b54d3cd748a44c6d04df638eb5dafb219b135d0149bd0db01f6"
-
-[[package]]
 name = "async-executor"
 version = "1.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -323,12 +317,12 @@ dependencies = [
 name = "http_client"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "async-io",
  "async-tls",
  "futures-lite",
  "http",
  "log",
+ "simple_error",
 ]
 
 [[package]]
@@ -600,6 +594,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
+name = "simple_error"
+version = "0.1.0"
+
+[[package]]
 name = "slab"
 version = "0.4.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -701,7 +699,6 @@ dependencies = [
 name = "websocket_client"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "async-executor",
  "async-io",
  "async-tls",
@@ -715,6 +712,7 @@ dependencies = [
  "macro_rules_attribute",
  "nom",
  "rand",
+ "simple_error",
  "smol-macros",
 ]
 

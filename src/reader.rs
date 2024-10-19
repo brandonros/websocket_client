@@ -1,5 +1,6 @@
 use bytes::{Buf, BytesMut};
 use futures_lite::io::{BufReader, AsyncRead, AsyncReadExt};
+use simple_error::SimpleResult;
 
 use crate::frame::WebSocketFrame;
 use crate::message::WebSocketMessage;
@@ -25,7 +26,7 @@ where
     }
 
     /// Parses a WebSocket frame from the buffer using nom.
-    fn parse_frame(&mut self) -> anyhow::Result<Option<WebSocketFrame>> {
+    fn parse_frame(&mut self) -> SimpleResult<Option<WebSocketFrame>> {
         if self.buffer.is_empty() {
             return Ok(None); // Need more data
         }
@@ -54,7 +55,7 @@ where
     }
 
     /// Reads the next WebSocket frame, handling partial frames and buffering.
-    pub async fn read_frame(&mut self) -> anyhow::Result<Option<WebSocketFrame>> {
+    pub async fn read_frame(&mut self) -> SimpleResult<Option<WebSocketFrame>> {
         loop {
             // Try to parse a frame from the buffer
             if let Some(frame) = self.parse_frame()? {
@@ -80,7 +81,7 @@ where
     }
 
     /// Reads a complete WebSocket message, handling fragmented frames.
-    pub async fn read_message(&mut self) -> anyhow::Result<Option<WebSocketMessage>> {
+    pub async fn read_message(&mut self) -> SimpleResult<Option<WebSocketMessage>> {
         let mut message = WebSocketMessage::new();
 
         // Keep reading frames until the entire message is accumulated
