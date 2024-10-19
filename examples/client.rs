@@ -28,12 +28,12 @@ async fn main(executor: Arc<Executor<'static>>) -> SimpleResult<()> {
         .header("Sec-WebSocket-Version", "13")                        
         .header("Sec-WebSocket-Key", WebSocketHelpers::generate_sec_websocket_key())    
         //.header("Sec-WebSocket-Extensions", "permessage-deflate; client_max_window_bits")
-        .body(())
+        .body(vec![])
         .expect("Failed to build request");
 
     // Get the response
     let mut stream = HttpClient::connect(&request).await.expect("connect failed");
-    let response = HttpClient::send::<(), String>(&mut stream, &request).await.expect("request failed");
+    let response = HttpClient::send(&mut stream, &request).await.expect("request failed");
     log::info!("response = {response:?}");
 
     // split stream
