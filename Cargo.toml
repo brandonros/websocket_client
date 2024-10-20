@@ -23,11 +23,11 @@ base64 = "0.22.1"
 bytes = "1.7.2"
 nom = "7.1.3"
 # errors
-simple_error = { path = "../simple_error" }
+simple_error = { git = "https://github.com/brandonros/simple_error.git" }
 
 [dev-dependencies]
 # logging
 env_logger = "0.11.5"
 # http
 http = "1.0.0"
-http_client = { path = "../http_client" }
+http_client = { git = "https://github.com/brandonros/http_client.git" }
