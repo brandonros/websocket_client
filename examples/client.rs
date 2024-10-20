@@ -32,8 +32,8 @@ async fn main(executor: Arc<Executor<'static>>) -> SimpleResult<()> {
         .expect("Failed to build request");
 
     // Get the response
-    let mut stream = HttpClient::connect(&request).await.expect("connect failed");
-    let response = HttpClient::send(&mut stream, &request).await.expect("request failed");
+    let mut stream = HttpClient::create_connection(&request).await.expect("connect failed");
+    let response = HttpClient::request(&mut stream, &request).await.expect("request failed");
     log::info!("response = {response:?}");
 
     // split stream
