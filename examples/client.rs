@@ -1,11 +1,9 @@
 use std::sync::Arc;
 
 use async_executor::Executor;
-use futures_lite::io::{BufReader, BufWriter};
 use http::{Request, Uri, Version};
-use http_client::HttpClient;
 use simple_error::SimpleResult;
-use websocket_client::{WebSocketHelpers, WebSocketReader, WebSocketWriter};
+use websocket_client::WebSocketClient;
 
 #[macro_rules_attribute::apply(smol_macros::main!)]
 async fn main(executor: Arc<Executor<'static>>) -> SimpleResult<()> {
@@ -23,27 +21,8 @@ async fn main(executor: Arc<Executor<'static>>) -> SimpleResult<()> {
         .header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36")
         .header("Host", "data.tradingview.com")
         .header("Origin", "https://www.tradingview.com")            
-        .header("Connection", "Upgrade")
-        .header("Upgrade", "websocket")      
-        .header("Sec-WebSocket-Version", "13")                        
-        .header("Sec-WebSocket-Key", WebSocketHelpers::generate_sec_websocket_key())    
-        //.header("Sec-WebSocket-Extensions", "permessage-deflate; client_max_window_bits")
-        .body(vec![])
-        .expect("Failed to build request");
-
-    // Get the response
-    let mut stream = HttpClient::create_connection(&request).await.expect("connect failed");
-    let response = HttpClient::request(&mut stream, &request).await.expect("request failed");
-    log::info!("response = {response:?}");
-
-    // split stream
-    let (reader, writer) = futures_lite::io::split(stream);
-    let reader = BufReader::new(reader);
-    let writer = BufWriter::new(writer);
-
-    // create websocket reader + writer
-    let mut ws_reader = WebSocketReader::new(reader);
-    let mut ws_writer = WebSocketWriter::new(writer);
+        .body(vec![])?;
+    let (mut ws_reader, mut ws_writer) = WebSocketClient::open(request).await?;
 
     // start task for reading in a loop using the reader
     let handle = executor.spawn(async move {
