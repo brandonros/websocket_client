@@ -36,7 +36,7 @@ impl WebSocketClient {
 
         // Make HTTP request
         let response = HttpClient::request(&mut stream, &request).await?;
-        log::info!("response = {response:?}");
+        log::debug!("response = {response:?}");
     
         // split connection
         let (reader, writer) = futures_lite::io::split(stream);
